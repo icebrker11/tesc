@@ -46,20 +46,19 @@ html, body {
   color: #fff;
   text-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
+.num.txt { font-size: 76px; }
 
 /* ── Section labels on the vertical divider ── */
 .dlbl {
   position: absolute;
   left: 50%; transform: translateX(-50%);
-  font-size: 9px; font-weight: 700;
-  letter-spacing: 2px; text-transform: uppercase;
-  color: rgba(255,255,255,0.70);
+  font-size: 18px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: #000;
   white-space: nowrap;
-  background: rgba(0,0,0,0.22);
-  padding: 2px 7px; border-radius: 4px;
 }
-#dlbl-game  { top: 86px;  }   /* center of top half (90px) */
-#dlbl-score { top: 266px; }   /* center of bottom half (270px) */
+#dlbl-game  { top: 14px;  }
+#dlbl-score { top: 322px; }
 
 /* ── Cross divider ── */
 #screen::before {                /* vertical line */
@@ -81,11 +80,11 @@ html, body {
 }
 .plbl {
   position: absolute;
-  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
-  color: rgba(255,255,255,0.55); text-transform: uppercase;
+  font-size: 20px; font-weight: 700; letter-spacing: 1px;
+  color: #000; text-transform: uppercase;
 }
-#lbl-me  { left: 68px;  top: 172px; }
-#lbl-opp { right: 50px; top: 172px; }
+#lbl-me  { left: 72px;  top: 156px; }
+#lbl-opp { right: 60px; top: 156px; }
 
 /* ── Center reset button ── */
 #reset {
@@ -107,15 +106,15 @@ html, body {
 }
 #overlay.on { display: flex; }
 #overlay p  {
-  color: #fff; font-size: 20px; font-weight: 700;
-  text-align: center; line-height: 1.5; margin-bottom: 28px;
+  color: #fff; font-size: 54px; font-weight: 700;
+  text-align: center; line-height: 1.1; margin-bottom: 22px;
 }
 .obtn {
-  display: inline-block; margin: 0 10px;
-  padding: 12px 22px; border-radius: 22px;
-  border: 2px solid rgba(255,255,255,0.45);
+  display: inline-block; margin: 0 8px;
+  padding: 14px 28px; border-radius: 40px;
+  border: 3px solid rgba(255,255,255,0.45);
   background: transparent; color: #fff;
-  font-size: 16px; font-weight: 700;
+  font-size: 40px; font-weight: 700;
 }
 #obtn-yes { background: rgba(220,61,136,0.75); border-color: #DC3D88; }
 </style>
@@ -154,7 +153,7 @@ html, body {
 
 <!-- Reset confirmation -->
 <div id="overlay">
-  <p>Reset<br>all scores?</p>
+  <p>Reset<br>all?</p>
   <div>
     <span class="obtn" id="obtn-no">No</span>
     <span class="obtn" id="obtn-yes">Yes</span>
@@ -191,8 +190,12 @@ html, body {
     if (sc.adv === 'p1') a = 'AD';
     else if (sc.adv === 'p2') b = 'AD';
     else if (sc.p1.game === 3 && sc.p2.game === 3) { a = 'DU'; b = 'CE'; }
-    document.getElementById('n-p1-game').textContent = a;
-    document.getElementById('n-p2-game').textContent = b;
+    const ea = document.getElementById('n-p1-game');
+    const eb = document.getElementById('n-p2-game');
+    ea.textContent = a;
+    eb.textContent = b;
+    ea.className = typeof a === 'string' ? 'num txt' : 'num';
+    eb.className = typeof b === 'string' ? 'num txt' : 'num';
   }
 
   function point(player) {
