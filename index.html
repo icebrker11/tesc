@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, user-scalable=no">
+<title>TESC</title>
+<style>
+* {
+  margin: 0; padding: 0; box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 360px; height: 360px;
+  overflow: hidden; background: #000;
+  touch-action: none;
+}
+
+/* ── 4-quadrant circular screen ── */
+#screen {
+  width: 360px; height: 360px;
+  border-radius: 50%; overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  position: relative;
+}
+
+.cell {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+
+/* Aqua left / Hot-pink right, lighter top / vivid bottom */
+#tl { background: #5EC8C2; }   /* lighter aqua  – ME SET   */
+#tr { background: #F2A0BC; }   /* lighter pink  – OPP SET  */
+#bl { background: #009E97; }   /* vivid teal    – ME GAME  */
+#br { background: #DC3D88; }   /* vivid hot-pink– OPP GAME */
+
+/* Active feedback */
+.cell:active { filter: brightness(1.3); }
+
+.num {
+  font-size: 99px; font-weight: 900; line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* ── Section labels on the vertical divider ── */
+.dlbl {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(255,255,255,0.70);
+  white-space: nowrap;
+  background: rgba(0,0,0,0.22);
+  padding: 2px 7px; border-radius: 4px;
+}
+#dlbl-game  { top: 86px;  }   /* center of top half (90px) */
+#dlbl-score { top: 266px; }   /* center of bottom half (270px) */
+
+/* ── Cross divider ── */
+#screen::before {                /* vertical line */
+  content: ''; position: absolute;
+  left: calc(50% - 1px); top: 0; bottom: 0; width: 2px;
+  background: rgba(0,0,0,0.3); z-index: 5; pointer-events: none;
+}
+#screen::after {                 /* horizontal line */
+  content: ''; position: absolute;
+  top: calc(50% - 1px); left: 0; right: 0; height: 2px;
+  background: rgba(0,0,0,0.3); z-index: 5; pointer-events: none;
+}
+
+/* ── Player labels at center cross ── */
+#labels {
+  position: absolute; top: 0; left: 0;
+  width: 360px; height: 360px;
+  pointer-events: none; z-index: 6;
+}
+.plbl {
+  position: absolute;
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.55); text-transform: uppercase;
+}
+#lbl-me  { left: 68px;  top: 172px; }
+#lbl-opp { right: 50px; top: 172px; }
+
+/* ── Reset overlay ── */
+#overlay {
+  position: fixed; inset: 0; border-radius: 50%;
+  background: rgba(0,0,0,0.9);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center; z-index: 50;
+}
+#overlay.on { display: flex; }
+#overlay p  {
+  color: #fff; font-size: 20px; font-weight: 700;
+  text-align: center; line-height: 1.5; margin-bottom: 28px;
+}
+.obtn {
+  display: inline-block; margin: 0 10px;
+  padding: 12px 22px; border-radius: 22px;
+  border: 2px solid rgba(255,255,255,0.45);
+  background: transparent; color: #fff;
+  font-size: 16px; font-weight: 700;
+}
+#obtn-yes { background: rgba(220,61,136,0.75); border-color: #DC3D88; }
+</style>
+</head>
+<body>
+
+<div id="screen">
+  <div class="cell" id="tl">
+    <div class="num" id="n-p1-set">0</div>
+  </div>
+  <div class="cell" id="tr">
+    <div class="num" id="n-p2-set">0</div>
+  </div>
+  <div class="cell" id="bl">
+    <div class="num" id="n-p1-game">0</div>
+  </div>
+  <div class="cell" id="br">
+    <div class="num" id="n-p2-game">0</div>
+  </div>
+</div>
+
+<!-- Overlay labels on divider lines -->
+<div id="labels">
+  <span class="plbl" id="lbl-me">ME</span>
+  <span class="plbl" id="lbl-opp">OPP</span>
+  <span class="dlbl" id="dlbl-game">GAME</span>
+  <span class="dlbl" id="dlbl-score">SCORE</span>
+</div>
+
+<!-- Reset confirmation -->
+<div id="overlay">
+  <p>Reset<br>all scores?</p>
+  <div>
+    <span class="obtn" id="obtn-no">No</span>
+    <span class="obtn" id="obtn-yes">Yes</span>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const SET_MAX    = 6;
+  const SCORE_VALS = [0, 15, 30, 45];
+  const LONG_MS    = 800;
+  const KEY        = 'tesc_v2';
+
+  let sc = { p1: { set: 0, game: 0 }, p2: { set: 0, game: 0 } };
+
+  function load() {
+    try {
+      const s = localStorage.getItem(KEY);
+      if (s) sc = JSON.parse(s);
+    } catch (_) {}
+    render();
+  }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(sc)); } catch (_) {}
+  }
+
+  function render() {
+    document.getElementById('n-p1-set').textContent  = sc.p1.set;
+    document.getElementById('n-p2-set').textContent  = sc.p2.set;
+    document.getElementById('n-p1-game').textContent = SCORE_VALS[sc.p1.game];
+    document.getElementById('n-p2-game').textContent = SCORE_VALS[sc.p2.game];
+  }
+
+  function inc(player, type) {
+    if (type === 'set') {
+      sc[player].set = (sc[player].set + 1) % (SET_MAX + 1);
+    } else {
+      sc[player].game = (sc[player].game + 1) % SCORE_VALS.length;
+    }
+    save();
+    render();
+    vibe(50);
+  }
+
+  function vibe(ms) {
+    try { navigator.vibrate(ms); } catch (_) {}
+  }
+
+  // ── Touch handlers (long-press = reset dialog) ──
+  const CELLS = [
+    { id: 'tl', player: 'p1', type: 'set'  },
+    { id: 'tr', player: 'p2', type: 'set'  },
+    { id: 'bl', player: 'p1', type: 'game' },
+    { id: 'br', player: 'p2', type: 'game' },
+  ];
+
+  CELLS.forEach(({ id, player, type }) => {
+    const el = document.getElementById(id);
+    let timer = null;
+    let fired = false;
+
+    el.addEventListener('touchstart', e => {
+      e.preventDefault();
+      fired = false;
+      timer = setTimeout(() => {
+        fired = true;
+        showOverlay();
+      }, LONG_MS);
+    }, { passive: false });
+
+    el.addEventListener('touchend', e => {
+      e.preventDefault();
+      if (timer) { clearTimeout(timer); timer = null; }
+      if (!fired) inc(player, type);
+      fired = false;
+    }, { passive: false });
+
+    el.addEventListener('touchcancel', () => {
+      if (timer) { clearTimeout(timer); timer = null; }
+      fired = false;
+    });
+  });
+
+  // ── Reset overlay ──
+  const overlay = document.getElementById('overlay');
+
+  function showOverlay() {
+    vibe(80);
+    overlay.classList.add('on');
+  }
+
+  document.getElementById('obtn-no').addEventListener('touchend', e => {
+    e.preventDefault();
+    overlay.classList.remove('on');
+  });
+
+  document.getElementById('obtn-yes').addEventListener('touchend', e => {
+    e.preventDefault();
+    sc = { p1: { set: 0, game: 0 }, p2: { set: 0, game: 0 } };
+    save();
+    render();
+    overlay.classList.remove('on');
+    vibe(100);
+  });
+
+  // ── Tizen hardware back key ──
+  window.addEventListener('tizenhwkey', e => {
+    if (e.keyName === 'back') {
+      if (overlay.classList.contains('on')) {
+        overlay.classList.remove('on');
+      } else {
+        try { tizen.application.getCurrentApplication().exit(); } catch (_) {}
+      }
+    }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
