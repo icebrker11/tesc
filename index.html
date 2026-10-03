@@ -87,6 +87,17 @@ html, body {
 #lbl-me  { left: 68px;  top: 172px; }
 #lbl-opp { right: 50px; top: 172px; }
 
+/* ── Center reset button ── */
+#reset {
+  position: absolute; left: 154px; top: 154px;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: #000; border: 2px solid rgba(255,255,255,0.35);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 20;
+}
+#reset:active { background: #333; }
+#reset svg { width: 26px; height: 26px; }
+
 /* ── Reset overlay ── */
 #overlay {
   position: fixed; inset: 0; border-radius: 50%;
@@ -134,6 +145,13 @@ html, body {
   <span class="dlbl" id="dlbl-score">SCORE</span>
 </div>
 
+<div id="reset">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="23 4 23 10 17 10"/>
+    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+  </svg>
+</div>
+
 <!-- Reset confirmation -->
 <div id="overlay">
   <p>Reset<br>all scores?</p>
@@ -148,7 +166,7 @@ html, body {
   'use strict';
 
   const SET_MAX    = 6;
-  const SCORE_VALS = [0, 15, 30, 45];
+  const SCORE_VALS = [0, 15, 30, 40];
   const LONG_MS    = 800;
   const KEY        = 'tesc_v2';
 
@@ -169,15 +187,31 @@ html, body {
   function render() {
     document.getElementById('n-p1-set').textContent  = sc.p1.set;
     document.getElementById('n-p2-set').textContent  = sc.p2.set;
-    document.getElementById('n-p1-game').textContent = SCORE_VALS[sc.p1.game];
-    document.getElementById('n-p2-game').textContent = SCORE_VALS[sc.p2.game];
+    let a = SCORE_VALS[sc.p1.game], b = SCORE_VALS[sc.p2.game];
+    if (sc.adv === 'p1') a = 'AD';
+    else if (sc.adv === 'p2') b = 'AD';
+    else if (sc.p1.game === 3 && sc.p2.game === 3) { a = 'DU'; b = 'CE'; }
+    document.getElementById('n-p1-game').textContent = a;
+    document.getElementById('n-p2-game').textContent = b;
+  }
+
+  function point(player) {
+    const opp = player === 'p1' ? 'p2' : 'p1';
+    if (sc[player].game < 3) {
+      sc[player].game++;
+    } else if (sc[opp].game < 3 || sc.adv === player) {
+      sc[player].set = (sc[player].set + 1) % (SET_MAX + 1);
+      sc.p1.game = 0; sc.p2.game = 0; sc.adv = null;
+    } else {
+      sc.adv = sc.adv ? null : player;
+    }
   }
 
   function inc(player, type) {
     if (type === 'set') {
       sc[player].set = (sc[player].set + 1) % (SET_MAX + 1);
     } else {
-      sc[player].game = (sc[player].game + 1) % SCORE_VALS.length;
+      point(player);
     }
     save();
     render();
@@ -230,6 +264,11 @@ html, body {
     vibe(80);
     overlay.classList.add('on');
   }
+
+  document.getElementById('reset').addEventListener('touchend', e => {
+    e.preventDefault();
+    showOverlay();
+  }, { passive: false });
 
   document.getElementById('obtn-no').addEventListener('touchend', e => {
     e.preventDefault();
