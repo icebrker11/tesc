@@ -38,26 +38,26 @@ html, body {
 }
 #home-list::-webkit-scrollbar { display: none; }
 
-#home-inner { padding: 105px 0; }
+#home-inner { padding: 85px 0; }
 
 .menu-item {
-  height: 150px;
+  height: 190px;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   transition: transform 0.06s linear, opacity 0.06s linear;
   will-change: transform, opacity;
 }
 
-.circle-icon {
-  width: 84px; height: 84px; border-radius: 50%;
+.icon-pill {
+  width: 248px; height: 92px; border-radius: 46px;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+  box-shadow: 0 3px 14px rgba(0,0,0,0.35);
 }
-.circle-icon svg { width: 36px; height: 36px; }
+.icon-pill svg { width: 56px; height: 56px; }
 
 .menu-label {
-  margin-top: 10px; color: #fff;
-  font-size: 16px; font-weight: 700; letter-spacing: 0.3px;
+  margin-top: 12px; color: #fff;
+  font-size: 64px; font-weight: 800; letter-spacing: 0.3px;
 }
 
 #toast {
@@ -227,13 +227,13 @@ html, body {
     <div id="home-list">
       <div id="home-inner">
         <div class="menu-item" data-action="game">
-          <div class="circle-icon" style="background:#009E97">
+          <div class="icon-pill" style="background:#009E97">
             <svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
           </div>
           <div class="menu-label">게임 시작</div>
         </div>
         <div class="menu-item" data-action="history">
-          <div class="circle-icon" style="background:#DC3D88">
+          <div class="icon-pill" style="background:#DC3D88">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
               <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
@@ -242,7 +242,7 @@ html, body {
           <div class="menu-label">기록 보기</div>
         </div>
         <div class="menu-item" data-action="backup">
-          <div class="circle-icon" style="background:#4B4B57">
+          <div class="icon-pill" style="background:#4B4B57">
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M17.5 19H9a7 7 0 1 1 6.71-9h.79a4.5 4.5 0 1 1 0 9z"/>
             </svg>
@@ -320,7 +320,7 @@ html, body {
   const LONG_MS    = 800;
   const KEY_SCORE  = 'tesc_score_v1';
   const KEY_HIST   = 'tesc_hist_v1';
-  const ITEM_H     = 150;
+  const ITEM_H     = 190;
 
   let sc   = { p1: { set: 0, game: 0 }, p2: { set: 0, game: 0 }, adv: null };
   let hist = [];
