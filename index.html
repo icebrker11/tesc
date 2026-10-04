@@ -16,8 +16,67 @@ html, body {
   touch-action: none;
 }
 
-/* ── 4-quadrant circular screen ── */
-#screen {
+#app { position: relative; width: 360px; height: 360px; }
+
+.screen {
+  position: absolute; top: 0; left: 0;
+  width: 360px; height: 360px;
+  border-radius: 50%; overflow: hidden;
+  display: none;
+}
+.screen.active { display: block; }
+
+/* ════════════════════════════════════════
+   HOME ─ circular scrolling menu
+   ════════════════════════════════════════ */
+#home-list {
+  width: 360px; height: 360px;
+  overflow-y: auto; overflow-x: hidden;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+#home-list::-webkit-scrollbar { display: none; }
+
+#home-inner { padding: 105px 0; }
+
+.menu-item {
+  height: 150px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: transform 0.06s linear, opacity 0.06s linear;
+  will-change: transform, opacity;
+}
+
+.circle-icon {
+  width: 84px; height: 84px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+}
+.circle-icon svg { width: 36px; height: 36px; }
+
+.menu-label {
+  margin-top: 10px; color: #fff;
+  font-size: 16px; font-weight: 700; letter-spacing: 0.3px;
+}
+
+#toast {
+  position: absolute; left: 50%; bottom: 54px;
+  transform: translateX(-50%) translateY(8px);
+  background: rgba(255,255,255,0.94); color: #111;
+  padding: 8px 18px; border-radius: 20px;
+  font-size: 14px; font-weight: 700; white-space: nowrap;
+  opacity: 0; pointer-events: none; z-index: 30;
+  transition: opacity 0.2s, transform 0.2s;
+}
+#toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ════════════════════════════════════════
+   GAME ─ 4-quadrant score screen
+   ════════════════════════════════════════ */
+#screen-game { position: absolute; }
+
+#quad {
   width: 360px; height: 360px;
   border-radius: 50%; overflow: hidden;
   display: grid;
@@ -32,13 +91,11 @@ html, body {
   position: relative; overflow: hidden;
 }
 
-/* Aqua left / Hot-pink right, lighter top / vivid bottom */
 #tl { background: #5EC8C2; }   /* lighter aqua  – ME SET   */
 #tr { background: #F2A0BC; }   /* lighter pink  – OPP SET  */
 #bl { background: #009E97; }   /* vivid teal    – ME GAME  */
 #br { background: #DC3D88; }   /* vivid hot-pink– OPP GAME */
 
-/* Active feedback */
 .cell:active { filter: brightness(1.3); }
 
 .num {
@@ -48,7 +105,6 @@ html, body {
 }
 .num.txt { font-size: 76px; }
 
-/* ── Section labels on the vertical divider ── */
 .dlbl {
   position: absolute;
   left: 50%; transform: translateX(-50%);
@@ -60,19 +116,17 @@ html, body {
 #dlbl-game  { top: 14px;  }
 #dlbl-score { top: 322px; }
 
-/* ── Cross divider ── */
-#screen::before {                /* vertical line */
+#quad::before {                  /* vertical line */
   content: ''; position: absolute;
   left: calc(50% - 1px); top: 0; bottom: 0; width: 2px;
   background: rgba(0,0,0,0.3); z-index: 5; pointer-events: none;
 }
-#screen::after {                 /* horizontal line */
+#quad::after {                   /* horizontal line */
   content: ''; position: absolute;
   top: calc(50% - 1px); left: 0; right: 0; height: 2px;
   background: rgba(0,0,0,0.3); z-index: 5; pointer-events: none;
 }
 
-/* ── Player labels at center cross ── */
 #labels {
   position: absolute; top: 0; left: 0;
   width: 360px; height: 360px;
@@ -86,78 +140,175 @@ html, body {
 #lbl-me  { left: 72px;  top: 156px; }
 #lbl-opp { right: 60px; top: 156px; }
 
-/* ── Center reset button ── */
-#reset {
+/* ── center gear button ── */
+#gear {
   position: absolute; left: 154px; top: 154px;
   width: 52px; height: 52px; border-radius: 50%;
   background: #000; border: 2px solid rgba(255,255,255,0.35);
   display: flex; align-items: center; justify-content: center;
   z-index: 20;
 }
-#reset:active { background: #333; }
-#reset svg { width: 26px; height: 26px; }
+#gear:active { background: #333; }
+#gear svg { width: 28px; height: 28px; }
 
-/* ── Reset overlay ── */
+/* ── action overlay (reset / end game) ── */
 #overlay {
   position: fixed; top: 0; left: 0; width: 360px; height: 360px; border-radius: 50%;
-  background: rgba(0,0,0,0.9);
+  background: rgba(0,0,0,0.92);
   display: none; flex-direction: column;
-  align-items: center; justify-content: center; z-index: 50;
+  align-items: center; justify-content: center;
+  gap: 18px;
+  z-index: 50;
 }
 #overlay.on { display: flex; }
-#overlay p  {
-  color: #fff; font-size: 54px; font-weight: 700;
-  text-align: center; line-height: 1.1; margin-bottom: 22px;
+
+.ov-section { display: flex; flex-direction: column; align-items: center; }
+.ov-label {
+  color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 700;
+  letter-spacing: 2px; margin-bottom: 8px;
 }
+.ov-row { display: flex; gap: 10px; }
+
 .obtn {
-  display: inline-block; margin: 0 8px;
-  padding: 14px 28px; border-radius: 40px;
-  border: 3px solid rgba(255,255,255,0.45);
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 72px; padding: 10px 16px; border-radius: 24px;
+  border: 2px solid rgba(255,255,255,0.4);
   background: transparent; color: #fff;
-  font-size: 40px; font-weight: 700;
+  font-size: 20px; font-weight: 700;
 }
-#obtn-yes { background: rgba(220,61,136,0.75); border-color: #DC3D88; }
+.obtn-ghost { border-color: rgba(255,255,255,0.35); }
+.obtn-pink  { background: rgba(220,61,136,0.8);  border-color: #DC3D88; }
+.obtn-teal  { background: rgba(0,158,151,0.85);  border-color: #009E97; }
+.obtn-muted { background: rgba(90,90,100,0.6);   border-color: rgba(255,255,255,0.3); }
+
+/* ════════════════════════════════════════
+   HISTORY ─ scrolling record list
+   ════════════════════════════════════════ */
+#hist-list {
+  width: 360px; height: 360px;
+  overflow-y: auto; overflow-x: hidden;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+#hist-list::-webkit-scrollbar { display: none; }
+
+#hist-inner {
+  min-height: 360px;
+  padding: 78px 44px 70px;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+#hist-stats { text-align: center; margin-bottom: 26px; }
+#hist-rate   { color: #fff; font-size: 48px; font-weight: 900; line-height: 1; }
+#hist-count  { color: rgba(255,255,255,0.65); font-size: 15px; font-weight: 600; margin-top: 6px; }
+
+.hist-row {
+  width: 100%; max-width: 260px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 4px; border-bottom: 1px solid rgba(255,255,255,0.12);
+  font-size: 16px; font-weight: 600; color: #fff;
+}
+.hist-date   { color: rgba(255,255,255,0.55); width: 50px; }
+.hist-score  { flex: 1; text-align: center; font-variant-numeric: tabular-nums; }
+.hist-result { width: 30px; text-align: right; font-weight: 800; }
+.res-win  { color: #1FD9C5; }
+.res-loss { color: #FF6B8B; }
+
+#hist-empty { color: rgba(255,255,255,0.5); font-size: 16px; text-align: center; margin-top: 40px; }
 </style>
 </head>
 <body>
 
-<div id="screen">
-  <div class="cell" id="tl">
-    <div class="num" id="n-p1-set">0</div>
-  </div>
-  <div class="cell" id="tr">
-    <div class="num" id="n-p2-set">0</div>
-  </div>
-  <div class="cell" id="bl">
-    <div class="num" id="n-p1-game">0</div>
-  </div>
-  <div class="cell" id="br">
-    <div class="num" id="n-p2-game">0</div>
-  </div>
-</div>
+<div id="app">
 
-<!-- Overlay labels on divider lines -->
-<div id="labels">
-  <span class="plbl" id="lbl-me">ME</span>
-  <span class="plbl" id="lbl-opp">OPP</span>
-  <span class="dlbl" id="dlbl-game">GAME</span>
-  <span class="dlbl" id="dlbl-score">SCORE</span>
-</div>
-
-<div id="reset">
-  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="23 4 23 10 17 10"/>
-    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-  </svg>
-</div>
-
-<!-- Reset confirmation -->
-<div id="overlay">
-  <p>Reset<br>all?</p>
-  <div>
-    <span class="obtn" id="obtn-no">No</span>
-    <span class="obtn" id="obtn-yes">Yes</span>
+  <!-- ══════════════ HOME ══════════════ -->
+  <div id="screen-home" class="screen active">
+    <div id="home-list">
+      <div id="home-inner">
+        <div class="menu-item" data-action="game">
+          <div class="circle-icon" style="background:#009E97">
+            <svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+          </div>
+          <div class="menu-label">게임 시작</div>
+        </div>
+        <div class="menu-item" data-action="history">
+          <div class="circle-icon" style="background:#DC3D88">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+          </div>
+          <div class="menu-label">기록 보기</div>
+        </div>
+        <div class="menu-item" data-action="backup">
+          <div class="circle-icon" style="background:#4B4B57">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.5 19H9a7 7 0 1 1 6.71-9h.79a4.5 4.5 0 1 1 0 9z"/>
+            </svg>
+          </div>
+          <div class="menu-label">백업</div>
+        </div>
+      </div>
+    </div>
+    <div id="toast"></div>
   </div>
+
+  <!-- ══════════════ GAME ══════════════ -->
+  <div id="screen-game" class="screen">
+    <div id="quad">
+      <div class="cell" id="tl"><div class="num" id="n-p1-set">0</div></div>
+      <div class="cell" id="tr"><div class="num" id="n-p2-set">0</div></div>
+      <div class="cell" id="bl"><div class="num" id="n-p1-game">0</div></div>
+      <div class="cell" id="br"><div class="num" id="n-p2-game">0</div></div>
+    </div>
+
+    <div id="labels">
+      <span class="plbl" id="lbl-me">ME</span>
+      <span class="plbl" id="lbl-opp">OPP</span>
+      <span class="dlbl" id="dlbl-game">GAME</span>
+      <span class="dlbl" id="dlbl-score">SCORE</span>
+    </div>
+
+    <div id="gear">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </div>
+
+    <div id="overlay">
+      <div class="ov-section">
+        <div class="ov-label">RESET</div>
+        <div class="ov-row">
+          <span class="obtn obtn-ghost" id="obtn-reset-no">No</span>
+          <span class="obtn obtn-pink"  id="obtn-reset-yes">Yes</span>
+        </div>
+      </div>
+      <div class="ov-section">
+        <div class="ov-label">END GAME</div>
+        <div class="ov-row">
+          <span class="obtn obtn-muted" id="obtn-loss">Loss</span>
+          <span class="obtn obtn-teal"  id="obtn-win">Win</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ HISTORY ══════════════ -->
+  <div id="screen-history" class="screen">
+    <div id="hist-list">
+      <div id="hist-inner">
+        <div id="hist-stats">
+          <div id="hist-rate">—</div>
+          <div id="hist-count">0승 0패</div>
+        </div>
+        <div id="hist-rows"></div>
+        <div id="hist-empty" hidden>기록 없음</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -167,25 +318,102 @@ html, body {
   const SET_MAX    = 6;
   const SCORE_VALS = [0, 15, 30, 40];
   const LONG_MS    = 800;
-  const KEY        = 'tesc_v2';
+  const KEY_SCORE  = 'tesc_score_v1';
+  const KEY_HIST   = 'tesc_hist_v1';
+  const ITEM_H     = 150;
 
-  let sc = { p1: { set: 0, game: 0 }, p2: { set: 0, game: 0 } };
+  let sc   = { p1: { set: 0, game: 0 }, p2: { set: 0, game: 0 }, adv: null };
+  let hist = [];
 
-  function load() {
-    try {
-      const s = localStorage.getItem(KEY);
-      if (s) sc = JSON.parse(s);
-    } catch (_) {}
-    render();
+  function vibe(ms) { try { navigator.vibrate(ms); } catch (_) {} }
+
+  function loadScore() {
+    try { const s = localStorage.getItem(KEY_SCORE); if (s) sc = JSON.parse(s); } catch (_) {}
+  }
+  function saveScore() {
+    try { localStorage.setItem(KEY_SCORE, JSON.stringify(sc)); } catch (_) {}
+  }
+  function loadHist() {
+    try { const s = localStorage.getItem(KEY_HIST); if (s) hist = JSON.parse(s); } catch (_) {}
+  }
+  function saveHist() {
+    try { localStorage.setItem(KEY_HIST, JSON.stringify(hist)); } catch (_) {}
   }
 
-  function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(sc)); } catch (_) {}
+  /* ───────────────── navigation ───────────────── */
+  const screens = {
+    home:    document.getElementById('screen-home'),
+    game:    document.getElementById('screen-game'),
+    history: document.getElementById('screen-history'),
+  };
+  let current = 'home';
+
+  function showScreen(name) {
+    screens[current].classList.remove('active');
+    screens[name].classList.add('active');
+    current = name;
+    if (name === 'history') renderHistory();
+    if (name === 'game') renderScore();
   }
 
-  function render() {
-    document.getElementById('n-p1-set').textContent  = sc.p1.set;
-    document.getElementById('n-p2-set').textContent  = sc.p2.set;
+  /* ───────────────── home menu ───────────────── */
+  const homeList = document.getElementById('home-list');
+  const items = Array.prototype.slice.call(document.querySelectorAll('.menu-item'));
+
+  function updateActiveItem() {
+    const listRect = homeList.getBoundingClientRect();
+    const centerY = listRect.top + listRect.height / 2;
+    let bestIdx = 0, bestDist = Infinity;
+    const dists = items.map(function (el, i) {
+      const r = el.getBoundingClientRect();
+      const d = Math.abs((r.top + r.height / 2) - centerY);
+      if (d < bestDist) { bestDist = d; bestIdx = i; }
+      return d;
+    });
+    items.forEach(function (el, i) {
+      const d = dists[i];
+      const scale = Math.max(0.6, 1 - d / 240);
+      const opacity = Math.max(0.3, 1 - d / 200);
+      el.style.transform = 'scale(' + scale.toFixed(3) + ')';
+      el.style.opacity = opacity.toFixed(3);
+      el.classList.toggle('active', i === bestIdx);
+    });
+  }
+
+  let snapTimer = null;
+  homeList.addEventListener('scroll', function () {
+    updateActiveItem();
+    if (snapTimer) clearTimeout(snapTimer);
+    snapTimer = setTimeout(function () {
+      const idx = items.findIndex(function (el) { return el.classList.contains('active'); });
+      if (idx >= 0) homeList.scrollTo({ top: idx * ITEM_H, behavior: 'smooth' });
+    }, 120);
+  });
+
+  items.forEach(function (el, i) {
+    el.addEventListener('click', function () {
+      if (!el.classList.contains('active')) {
+        homeList.scrollTo({ top: i * ITEM_H, behavior: 'smooth' });
+        return;
+      }
+      const action = el.getAttribute('data-action');
+      if (action === 'game') showScreen('game');
+      else if (action === 'history') showScreen('history');
+      else if (action === 'backup') showToast('준비 중');
+    });
+  });
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    setTimeout(function () { t.classList.remove('on'); }, 1200);
+  }
+
+  /* ───────────────── game screen ───────────────── */
+  function renderScore() {
+    document.getElementById('n-p1-set').textContent = sc.p1.set;
+    document.getElementById('n-p2-set').textContent = sc.p2.set;
     let a = SCORE_VALS[sc.p1.game], b = SCORE_VALS[sc.p2.game];
     if (sc.adv === 'p1') a = 'AD';
     else if (sc.adv === 'p2') b = 'AD';
@@ -210,95 +438,123 @@ html, body {
     }
   }
 
-  function inc(player, type) {
-    if (type === 'set') {
-      sc[player].set = (sc[player].set + 1) % (SET_MAX + 1);
-    } else {
-      point(player);
-    }
-    save();
-    render();
-    vibe(50);
+  function incScore(player, type) {
+    if (type === 'set') sc[player].set = (sc[player].set + 1) % (SET_MAX + 1);
+    else point(player);
+    saveScore(); renderScore(); vibe(50);
   }
 
-  function vibe(ms) {
-    try { navigator.vibrate(ms); } catch (_) {}
-  }
-
-  // ── Touch handlers (long-press = reset dialog) ──
   const CELLS = [
     { id: 'tl', player: 'p1', type: 'set'  },
     { id: 'tr', player: 'p2', type: 'set'  },
     { id: 'bl', player: 'p1', type: 'game' },
     { id: 'br', player: 'p2', type: 'game' },
   ];
-
-  CELLS.forEach(({ id, player, type }) => {
-    const el = document.getElementById(id);
-    let timer = null;
-    let fired = false;
-
-    el.addEventListener('touchstart', e => {
-      e.preventDefault();
-      fired = false;
-      timer = setTimeout(() => {
-        fired = true;
-        showOverlay();
-      }, LONG_MS);
-    }, { passive: false });
-
-    el.addEventListener('touchend', e => {
-      e.preventDefault();
-      if (timer) { clearTimeout(timer); timer = null; }
-      if (!fired) inc(player, type);
-      fired = false;
-    }, { passive: false });
-
-    el.addEventListener('touchcancel', () => {
-      if (timer) { clearTimeout(timer); timer = null; }
-      fired = false;
-    });
+  CELLS.forEach(function (c) {
+    const el = document.getElementById(c.id);
+    el.addEventListener('touchstart', function (e) { e.preventDefault(); }, { passive: false });
+    el.addEventListener('touchend', function (e) { e.preventDefault(); incScore(c.player, c.type); }, { passive: false });
   });
 
-  // ── Reset overlay ──
+  /* ── gear: long-press opens action overlay ── */
   const overlay = document.getElementById('overlay');
+  const gearEl = document.getElementById('gear');
+  let gearTimer = null;
 
-  function showOverlay() {
-    vibe(80);
-    overlay.classList.add('on');
-  }
-
-  document.getElementById('reset').addEventListener('touchend', e => {
+  gearEl.addEventListener('touchstart', function (e) {
     e.preventDefault();
-    showOverlay();
+    gearTimer = setTimeout(function () {
+      gearTimer = null;
+      vibe(80);
+      overlay.classList.add('on');
+    }, LONG_MS);
   }, { passive: false });
 
-  document.getElementById('obtn-no').addEventListener('touchend', e => {
+  gearEl.addEventListener('touchend', function (e) {
     e.preventDefault();
-    overlay.classList.remove('on');
+    if (gearTimer) { clearTimeout(gearTimer); gearTimer = null; }
+  }, { passive: false });
+
+  gearEl.addEventListener('touchcancel', function () {
+    if (gearTimer) { clearTimeout(gearTimer); gearTimer = null; }
   });
 
-  document.getElementById('obtn-yes').addEventListener('touchend', e => {
+  function closeOverlay() { overlay.classList.remove('on'); }
+
+  overlay.addEventListener('touchend', function (e) {
+    if (e.target === overlay) { e.preventDefault(); closeOverlay(); }
+  });
+
+  document.getElementById('obtn-reset-no').addEventListener('touchend', function (e) {
+    e.preventDefault(); closeOverlay();
+  });
+  document.getElementById('obtn-reset-yes').addEventListener('touchend', function (e) {
     e.preventDefault();
-    sc = { p1: { set: 0, game: 0 }, p2: { set: 0, game: 0 } };
-    save();
-    render();
-    overlay.classList.remove('on');
-    vibe(100);
+    sc = { p1: { set: 0, game: 0 }, p2: { set: 0, game: 0 }, adv: null };
+    saveScore(); renderScore(); closeOverlay(); vibe(100);
   });
 
-  // ── Tizen hardware back key ──
-  window.addEventListener('tizenhwkey', e => {
-    if (e.keyName === 'back') {
-      if (overlay.classList.contains('on')) {
-        overlay.classList.remove('on');
-      } else {
-        try { tizen.application.getCurrentApplication().exit(); } catch (_) {}
-      }
-    }
+  function todayStr() {
+    const d = new Date();
+    const p = function (n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+  function shortDate(iso) {
+    const parts = iso.split('-');
+    return parts[1] + '/' + parts[2];
+  }
+
+  function endGame(result) {
+    hist.unshift({ date: todayStr(), me: sc.p1.set, opp: sc.p2.set, result: result });
+    saveHist();
+    sc = { p1: { set: 0, game: 0 }, p2: { set: 0, game: 0 }, adv: null };
+    saveScore();
+    closeOverlay();
+    vibe(120);
+    showScreen('home');
+  }
+  document.getElementById('obtn-win').addEventListener('touchend', function (e) { e.preventDefault(); endGame('win'); });
+  document.getElementById('obtn-loss').addEventListener('touchend', function (e) { e.preventDefault(); endGame('loss'); });
+
+  /* ───────────────── history screen ───────────────── */
+  function renderHistory() {
+    const wins = hist.filter(function (h) { return h.result === 'win'; }).length;
+    const losses = hist.length - wins;
+    const rate = hist.length ? Math.round(wins / hist.length * 100) : null;
+    document.getElementById('hist-rate').textContent = rate === null ? '—' : rate + '%';
+    document.getElementById('hist-count').textContent = wins + '승 ' + losses + '패';
+
+    const rows = document.getElementById('hist-rows');
+    const empty = document.getElementById('hist-empty');
+    rows.innerHTML = '';
+    if (!hist.length) { empty.hidden = false; return; }
+    empty.hidden = true;
+    hist.forEach(function (h) {
+      const row = document.createElement('div');
+      row.className = 'hist-row';
+      const resultCls = h.result === 'win' ? 'res-win' : 'res-loss';
+      const resultTxt = h.result === 'win' ? '승' : '패';
+      row.innerHTML =
+        '<span class="hist-date">' + shortDate(h.date) + '</span>' +
+        '<span class="hist-score">' + h.me + ':' + h.opp + '</span>' +
+        '<span class="hist-result ' + resultCls + '">' + resultTxt + '</span>';
+      rows.appendChild(row);
+    });
+  }
+
+  /* ───────────────── hardware back key ───────────────── */
+  window.addEventListener('tizenhwkey', function (e) {
+    if (e.keyName !== 'back') return;
+    if (overlay.classList.contains('on')) { closeOverlay(); return; }
+    if (current !== 'home') { showScreen('home'); return; }
+    try { tizen.application.getCurrentApplication().exit(); } catch (_) {}
   });
 
-  load();
+  /* ───────────────── init ───────────────── */
+  loadScore();
+  loadHist();
+  renderScore();
+  updateActiveItem();
 })();
 </script>
 </body>
