@@ -57,7 +57,7 @@ html, body {
 
 .menu-label {
   margin-top: 12px; color: #fff;
-  font-size: 64px; font-weight: 800; letter-spacing: 0.3px;
+  font-size: 50px; font-weight: 800; letter-spacing: 0.3px;
 }
 
 #toast {
@@ -151,6 +151,17 @@ html, body {
 #gear:active { background: #333; }
 #gear svg { width: 28px; height: 28px; }
 
+/* ── soft back button (home/history reuse same style) ── */
+.back-btn {
+  position: absolute; left: 20px; top: 162px;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #000; border: 2px solid rgba(255,255,255,0.35);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 25;
+}
+.back-btn:active { background: #333; }
+.back-btn svg { width: 20px; height: 20px; }
+
 /* ── action overlay (reset / end game) ── */
 #overlay {
   position: fixed; top: 0; left: 0; width: 360px; height: 360px; border-radius: 50%;
@@ -195,27 +206,27 @@ html, body {
 
 #hist-inner {
   min-height: 360px;
-  padding: 78px 44px 70px;
+  padding: 68px 40px 60px;
   display: flex; flex-direction: column; align-items: center;
 }
 
-#hist-stats { text-align: center; margin-bottom: 26px; }
-#hist-rate   { color: #fff; font-size: 48px; font-weight: 900; line-height: 1; }
-#hist-count  { color: rgba(255,255,255,0.65); font-size: 15px; font-weight: 600; margin-top: 6px; }
+#hist-stats { text-align: center; margin-bottom: 20px; }
+#hist-rate   { color: #fff; font-size: 92px; font-weight: 900; line-height: 1; }
+#hist-count  { color: rgba(255,255,255,0.65); font-size: 30px; font-weight: 700; margin-top: 8px; }
 
 .hist-row {
-  width: 100%; max-width: 260px;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 4px; border-bottom: 1px solid rgba(255,255,255,0.12);
-  font-size: 16px; font-weight: 600; color: #fff;
+  width: 100%; max-width: 280px;
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 13px 2px; border-bottom: 1px solid rgba(255,255,255,0.12);
+  font-size: 30px; font-weight: 700; color: #fff;
 }
-.hist-date   { color: rgba(255,255,255,0.55); width: 50px; }
-.hist-score  { flex: 1; text-align: center; font-variant-numeric: tabular-nums; }
-.hist-result { width: 30px; text-align: right; font-weight: 800; }
+.hist-date   { flex: 0 0 auto; color: rgba(255,255,255,0.55); font-size: 22px; }
+.hist-score  { flex: 1 1 auto; min-width: 0; text-align: center; font-variant-numeric: tabular-nums; }
+.hist-result { flex: 0 0 auto; text-align: right; font-weight: 900; }
 .res-win  { color: #1FD9C5; }
 .res-loss { color: #FF6B8B; }
 
-#hist-empty { color: rgba(255,255,255,0.5); font-size: 16px; text-align: center; margin-top: 40px; }
+#hist-empty { color: rgba(255,255,255,0.5); font-size: 26px; text-align: center; margin-top: 40px; }
 </style>
 </head>
 <body>
@@ -230,7 +241,7 @@ html, body {
           <div class="icon-pill" style="background:#009E97">
             <svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
           </div>
-          <div class="menu-label">게임 시작</div>
+          <div class="menu-label">Start</div>
         </div>
         <div class="menu-item" data-action="history">
           <div class="icon-pill" style="background:#DC3D88">
@@ -239,7 +250,7 @@ html, body {
               <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
             </svg>
           </div>
-          <div class="menu-label">기록 보기</div>
+          <div class="menu-label">History</div>
         </div>
         <div class="menu-item" data-action="backup">
           <div class="icon-pill" style="background:#4B4B57">
@@ -247,7 +258,7 @@ html, body {
               <path d="M17.5 19H9a7 7 0 1 1 6.71-9h.79a4.5 4.5 0 1 1 0 9z"/>
             </svg>
           </div>
-          <div class="menu-label">백업</div>
+          <div class="menu-label">Backup</div>
         </div>
       </div>
     </div>
@@ -268,6 +279,12 @@ html, body {
       <span class="plbl" id="lbl-opp">OPP</span>
       <span class="dlbl" id="dlbl-game">GAME</span>
       <span class="dlbl" id="dlbl-score">SCORE</span>
+    </div>
+
+    <div class="back-btn" id="back-game">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
     </div>
 
     <div id="gear">
@@ -297,6 +314,11 @@ html, body {
 
   <!-- ══════════════ HISTORY ══════════════ -->
   <div id="screen-history" class="screen">
+    <div class="back-btn" id="back-history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </div>
     <div id="hist-list">
       <div id="hist-inner">
         <div id="hist-stats">
@@ -304,7 +326,7 @@ html, body {
           <div id="hist-count">0승 0패</div>
         </div>
         <div id="hist-rows"></div>
-        <div id="hist-empty" hidden>기록 없음</div>
+        <div id="hist-empty" hidden>No records</div>
       </div>
     </div>
   </div>
@@ -353,8 +375,23 @@ html, body {
     screens[name].classList.add('active');
     current = name;
     if (name === 'history') renderHistory();
-    if (name === 'game') renderScore();
+    if (name === 'game') { renderScore(); requestWake(); }
+    else { releaseWake(); }
   }
+
+  /* ── keep screen on while scoring (closest substitute for AOD,
+     since this runs as a browser page, not an installed app) ── */
+  let wakeLock = null;
+  function requestWake() {
+    if (!('wakeLock' in navigator)) return;
+    navigator.wakeLock.request('screen').then(function (wl) { wakeLock = wl; }).catch(function () {});
+  }
+  function releaseWake() {
+    if (wakeLock) { wakeLock.release().catch(function () {}); wakeLock = null; }
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && current === 'game') requestWake();
+  });
 
   /* ───────────────── home menu ───────────────── */
   const homeList = document.getElementById('home-list');
@@ -399,7 +436,7 @@ html, body {
       const action = el.getAttribute('data-action');
       if (action === 'game') showScreen('game');
       else if (action === 'history') showScreen('history');
-      else if (action === 'backup') showToast('준비 중');
+      else if (action === 'backup') showToast('Coming soon');
     });
   });
 
@@ -409,6 +446,13 @@ html, body {
     t.classList.add('on');
     setTimeout(function () { t.classList.remove('on'); }, 1200);
   }
+
+  document.getElementById('back-game').addEventListener('touchend', function (e) {
+    e.preventDefault(); showScreen('home');
+  });
+  document.getElementById('back-history').addEventListener('touchend', function (e) {
+    e.preventDefault(); showScreen('home');
+  });
 
   /* ───────────────── game screen ───────────────── */
   function renderScore() {
@@ -522,7 +566,7 @@ html, body {
     const losses = hist.length - wins;
     const rate = hist.length ? Math.round(wins / hist.length * 100) : null;
     document.getElementById('hist-rate').textContent = rate === null ? '—' : rate + '%';
-    document.getElementById('hist-count').textContent = wins + '승 ' + losses + '패';
+    document.getElementById('hist-count').textContent = wins + 'W ' + losses + 'L';
 
     const rows = document.getElementById('hist-rows');
     const empty = document.getElementById('hist-empty');
@@ -533,7 +577,7 @@ html, body {
       const row = document.createElement('div');
       row.className = 'hist-row';
       const resultCls = h.result === 'win' ? 'res-win' : 'res-loss';
-      const resultTxt = h.result === 'win' ? '승' : '패';
+      const resultTxt = h.result === 'win' ? 'W' : 'L';
       row.innerHTML =
         '<span class="hist-date">' + shortDate(h.date) + '</span>' +
         '<span class="hist-score">' + h.me + ':' + h.opp + '</span>' +
